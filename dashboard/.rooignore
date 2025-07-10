@@ -1,0 +1,38 @@
+# Auto-generated .rooignore file
+# Files and directories to be ignored by Roo-Code's LLM processing
+# Generated on: 2025-06-01T20:50:39.868Z
+
+# Files over 45000 tokens (LLM context overflow prevention)
+
+# Common binary file patterns
+*.zip
+*.gz
+*.tar
+*.rar
+*.7z
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.ico
+*.mp4
+*.mov
+*.avi
+*.mpg
+*.mpeg
+*.mp3
+*.wav
+*.ogg
+*.flac
+*.aac
+*.bin
+*.exe
+*.dll
+*.so
+*.dylib
+*.pdf
+*.psd
+*.ai
+
+# Project-specific patterns

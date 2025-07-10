@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Configuration Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        /* Optional: Add some custom styles if needed */
+    </style>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl p-6">
+        <h1 class="text-2xl font-bold mb-4">Agent Configuration</h1>
+
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="greeting">
+                Greeting:
+            </label>
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="greeting" type="text" placeholder="Enter new greeting">
+            <button class="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onclick="updateConfig('greeting')">Update Greeting</button>
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="prompt">
+                Prompt:
+            </label>
+            <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="prompt" rows="4" placeholder="Enter new prompt"></textarea>
+            <button class="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onclick="updateConfig('prompt')">Update Prompt</button>
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="model">
+                Model (Think Provider):
+            </label>
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="model" type="text" placeholder="Enter new model name">
+            <button class="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onclick="updateConfig('model')">Update Model</button>
+        </div>
+
+        <div id="status" class="mt-4 text-center font-bold"></div>
+    </div>
+
+    <script>
+        async function updateConfig(configType) {
+            const inputElement = document.getElementById(configType);
+            const value = inputElement.value;
+            const statusElement = document.getElementById('status');
+
+            if (!value) {
+                statusElement.textContent = `${configType.charAt(0).toUpperCase() + configType.slice(1)} value cannot be empty.`;
+                statusElement.className = 'mt-4 text-center font-bold text-red-500';
+                return;
+            }
+
+            const url = `http://voiceaiagent.tech:5002/config/${configType}`;
+            const payload = { value: value };
+
+            statusElement.textContent = `Updating ${configType}...`;
+            statusElement.className = 'mt-4 text-center font-bold text-gray-600';
+
+            try {
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    statusElement.textContent = `${configType.charAt(0).toUpperCase() + configType.slice(1)} updated successfully!`;
+                    statusElement.className = 'mt-4 text-center font-bold text-green-500';
+                    console.log('Update successful:', result);
+                } else {
+                    const error = await response.text();
+                    statusElement.textContent = `Failed to update ${configType}: ${response.status} ${response.statusText}`;
+                    statusElement.className = 'mt-4 text-center font-bold text-red-500';
+                    console.error('Update failed:', response.status, response.statusText, error);
+                }
+            } catch (error) {
+                statusElement.textContent = `An error occurred while updating ${configType}.`;
+                statusElement.className = 'mt-4 text-center font-bold text-red-500';
+                console.error('Fetch error:', error);
+            }
+        }
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const statusElement = document.getElementById('status');
+            statusElement.textContent = 'Fetching current configuration...';
+            statusElement.className = 'mt-4 text-center font-bold text-gray-600';
+
+            try {
+                const response = await fetch('http://voiceaiagent.tech:5002/config');
+                if (response.ok) {
+                    const config = await response.json();
+                    document.getElementById('greeting').value = config.greeting;
+                    document.getElementById('prompt').value = config.think_prompt;
+                    document.getElementById('model').value = config.think_model;
+                    statusElement.textContent = 'Configuration loaded.';
+                    statusElement.className = 'mt-4 text-center font-bold text-green-500';
+                } else {
+                    statusElement.textContent = `Failed to fetch configuration: ${response.status} ${response.statusText}`;
+                    statusElement.className = 'mt-4 text-center font-bold text-red-500';
+                }
+            } catch (error) {
+                statusElement.textContent = 'An error occurred while fetching configuration.';
+                statusElement.className = 'mt-4 text-center font-bold text-red-500';
+                console.error('Fetch error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

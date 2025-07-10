@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Register - Bolna</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <style>
+        .material-icons {
+            font-family: 'Material Icons';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+            -moz-osx-font-smoothing: grayscale;
+            font-feature-settings: 'liga';
+        }
+        .password-strength {
+            height: 4px;
+            transition: width 0.3s ease;
+        }
+        .strength-0 { background-color: #ef4444; width: 20%; }
+        .strength-1 { background-color: #f97316; width: 40%; }
+        .strength-2 { background-color: #eab308; width: 60%; }
+        .strength-3 { background-color: #22c55e; width: 80%; }
+        .strength-4 { background-color: #22c55e; width: 100%; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-md p-6">
+        <div class="bg-white shadow-lg rounded-xl p-8">
+            <div class="flex justify-center mb-8">
+                <img alt="Company logo" class="h-8 w-auto" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAO9eyJDaLUb5wO8W4CjDsMcNos22bIYfi1SE_4gfSv-5rPvmIHLrZ6_0H7r43iaGZp4rmgqlKP7oaw6zWbg7ekesXWTYtMk8NxDrv5w-QL4s7Hn8RbthN9eT9EBPzHl35xpO0Xl-5GsCaHunerpTcDxwxjfn_Pe-rqYV0sxGMdnlVH4ydPEEcwdlwrxc1dmeLfYzu2zqK1hsLFTqmyJ5FhN-pClOWw_EVe4jciOyzLar4nlztoyfWh794dmYJ2tO_0KacNgPOgjuRa"/>
+            </div>
+            
+            <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">Create your account</h1>
+            
+            <form id="registerForm" class="space-y-4">
+                <div>
+                    <label for="fullName" class="block text-sm font-medium text-gray-700 mb-1">Full name</label>
+                    <input type="text" id="fullName" name="fullName" required
+                        class="w-full p-2.5 border border-gray-300 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="John Doe">
+                    <p id="nameError" class="mt-1 text-xs text-red-600 hidden">Please enter your full name</p>
+                </div>
+                
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email address</label>
+                    <input type="email" id="email" name="email" required
+                        class="w-full p-2.5 border border-gray-300 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="you@example.com">
+                    <p id="emailError" class="mt-1 text-xs text-red-600 hidden">Please enter a valid email address</p>
+                </div>
+                
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="password" name="password" required
+                        class="w-full p-2.5 border border-gray-300 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="••••••••">
+                    <div class="mt-1">
+                        <div class="password-strength strength-0" id="passwordStrength"></div>
+                        <p id="passwordError" class="text-xs text-red-600 hidden">Password must be at least 8 characters</p>
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">Confirm password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required
+                        class="w-full p-2.5 border border-gray-300 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="••••••••">
+                    <p id="confirmPasswordError" class="mt-1 text-xs text-red-600 hidden">Passwords do not match</p>
+                </div>
+                
+                <button type="submit"
+                    class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Register
+                </button>
+            </form>
+            
+            <div class="mt-6 text-center">
+                <p class="text-sm text-gray-600">
+                    Already have an account? 
+                    <a href="login.html" class="font-medium text-indigo-600 hover:text-indigo-500">Sign in</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Reset errors
+            document.getElementById('nameError').classList.add('hidden');
+            document.getElementById('emailError').classList.add('hidden');
+            document.getElementById('passwordError').classList.add('hidden');
+            document.getElementById('confirmPasswordError').classList.add('hidden');
+            
+            // Validate name
+            const name = document.getElementById('fullName').value;
+            if (!name) {
+                document.getElementById('nameError').classList.remove('hidden');
+                return;
+            }
+            
+            // Validate email
+            const email = document.getElementById('email').value;
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                document.getElementById('emailError').classList.remove('hidden');
+                return;
+            }
+            
+            // Validate password
+            const password = document.getElementById('password').value;
+            if (!password || password.length < 8) {
+                document.getElementById('passwordError').classList.remove('hidden');
+                return;
+            }
+            
+            // Validate password match
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            if (password !== confirmPassword) {
+                document.getElementById('confirmPasswordError').classList.remove('hidden');
+                return;
+            }
+            
+            // Form is valid, proceed with registration
+            alert('Registration successful! Redirecting...');
+        });
+
+        // Password strength meter
+        document.getElementById('password').addEventListener('input', function(e) {
+            const password = e.target.value;
+            const strengthMeter = document.getElementById('passwordStrength');
+            let strength = 0;
+            
+            if (password.length >= 8) strength++;
+            if (password.length >= 12) strength++;
+            if (/[A-Z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^A-Za-z0-9]/.test(password)) strength++;
+            
+            // Cap at 4 for our meter
+            strength = Math.min(strength, 4);
+            strengthMeter.className = 'password-strength strength-' + strength;
+        });
+    </script>
+</body>
+</html>

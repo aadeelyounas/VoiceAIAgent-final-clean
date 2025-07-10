@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .container { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .section { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, textarea, select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .status { margin-top: 20px; padding: 10px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .agent-list { max-height: 200px; overflow-y: auto; margin: 10px 0; }
+        .agent-item { padding: 10px; border-bottom: 1px solid #ddd; cursor: pointer; }
+        .agent-item:hover { background: #eee; }
+        .agent-item.editing { background: #e7f1ff; }
+        .delete-btn { background: none; border: none; color: #dc3545; padding: 5px; }
+        .edit-mode { border-left: 4px solid #007bff; padding-left: 16px; }
+        .edit-indicator { color: #007bff; font-weight: bold; margin-bottom: 10px; }
+        .voice-provider-group { border: 1px solid #ddd; padding: 15px; border-radius: 4px; margin-top: 10px; }
+        .voice-provider-group h4 { margin: 0 0 10px 0; color: #555; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <h1>Agent Dashboard</h1>
+    
+    <div class="container">
+        <!-- Agent Management -->
+        <div>
+            <!-- Create/Edit Agent Section -->
+            <div class="section" id="agentFormSection">
+                <h2>Manage Agents</h2>
+                <form id="agentForm">
+                    <input type="hidden" id="agentIdInput">
+                    <div id="editIndicator" class="edit-indicator" style="display: none;">
+                        Editing Agent: <span id="editingAgentName"></span> (ID: <span id="editingAgentId"></span>)
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Agent Name:</label>
+                        <input type="text" id="agentName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>System Prompt:</label>
+                        <textarea id="systemPrompt" rows="4" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Welcome Message:</label>
+                        <input type="text" id="welcomeMessage" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>LLM Model:</label>
+                        <select id="llmModel">
+                            <option value="gpt-4o-mini">GPT-4o Mini</option>
+                            <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                            <option value="gpt-4">GPT-4</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Voice Provider:</label>
+                        <select id="voiceProvider" onchange="toggleVoiceOptions()">
+                            <option value="deepgram">Deepgram</option>
+                            <option value="elevenlabs">ElevenLabs</option>
+                        </select>
+                        
+                        <!-- Deepgram Voice Options -->
+                        <div id="deepgramOptions" class="voice-provider-group">
+                            <h4>Deepgram Voice Settings</h4>
+                            <label>Voice:</label>
+                            <select id="deepgramVoice">
+                                <option value="amalthea">Amalthea (feminine, Young Adult, Filipino)</option>
+                                <option value="andromeda">Andromeda (feminine, Adult, American)</option>
+                                <option value="apollo">Apollo (masculine, Adult, American)</option>
+                                <option value="arcas">Arcas (masculine, Adult, American)</option>
+                                <option value="aries">Aries (masculine, Adult, American)</option>
+                                <option value="asteria">Asteria (feminine, Adult, American)</option>
+                                <option value="athena">Athena (feminine, Mature, American)</option>
+                                <option value="atlas">Atlas (masculine, Mature, American)</option>
+                                <option value="aurora">Aurora (feminine, Adult, American)</option>
+                                <option value="callista">Callista (feminine, Adult, American)</option>
+                                <option value="cora">Cora (feminine, Adult, American)</option>
+                                <option value="cordelia">Cordelia (feminine, Young Adult, American)</option>
+                                <option value="delia">Delia (feminine, Young Adult, American)</option>
+                                <option value="draco">Draco (masculine, Adult, British)</option>
+                                <option value="electra">Electra (feminine, Adult, American)</option>
+                                <option value="harmonia">Harmonia (feminine, Adult, American)</option>
+                                <option value="helena">Helena (feminine, Adult, American)</option>
+                                <option value="hera">Hera (feminine, Adult, American)</option>
+                                <option value="hermes">Hermes (masculine, Adult, American)</option>
+                                <option value="hyperion">Hyperion (masculine, Adult, Australian)</option>
+                                <option value="iris">Iris (feminine, Young Adult, American)</option>
+                                <option value="janus">Janus (feminine, Adult, American)</option>
+                                <option value="juno">Juno (feminine, Adult, American)</option>
+                                <option value="jupiter">Jupiter (masculine, Adult, American)</option>
+                                <option value="luna">Luna (feminine, Young Adult, American)</option>
+                                <option value="mars">Mars (masculine, Adult, American)</option>
+                                <option value="minerva">Minerva (feminine, Adult, American)</option>
+                                <option value="neptune">Neptune (masculine, Adult, American)</option>
+                                <option value="odysseus">Odysseus (masculine, Adult, American)</option>
+                                <option value="ophelia">Ophelia (feminine, Adult, American)</option>
+                                <option value="orion">Orion (masculine, Adult, American)</option>
+                                <option value="orpheus">Orpheus (masculine, Adult, American)</option>
+                                <option value="pandora">Pandora (feminine, Adult, British)</option>
+                                <option value="phoebe">Phoebe (feminine, Adult, American)</option>
+                                <option value="pluto">Pluto (masculine, Adult, American)</option>
+                                <option value="saturn">Saturn (masculine, Adult, American)</option>
+                                <option value="selene">Selene (feminine, Adult, American)</option>
+                                <option value="thalia">Thalia (feminine, Adult, American)</option>
+                                <option value="theia">Theia (feminine, Adult, Australian)</option>
+                                <option value="vesta">Vesta (feminine, Adult, American)</option>
+                                <option value="zeus">Zeus (masculine, Adult, American)</option>
+                            </select>
+                        </div>
+
+                        <!-- ElevenLabs Voice Options -->
+                        <div id="elevenlabsOptions" class="voice-provider-group hidden">
+                            <h4>ElevenLabs Voice Settings</h4>
+                            <label>Voice:</label>
+                            <select id="elevenlabsVoice">
+                                <option value="">Loading voices...</option>
+                            </select>
+                            <div id="voiceInfo" style="margin-top: 10px; padding: 8px; background: #f9f9f9; border-radius: 4px; font-size: 12px; display: none;">
+                                <strong>Voice Details:</strong><br>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 5px;">
+                                    <span id="voiceGender"></span>
+                                    <span id="voiceAccent"></span>
+                                    <span id="voiceAge"></span>
+                                    <span id="voiceCategory"></span>
+                                </div>
+                                <div id="voiceDescription" style="margin-top: 8px; font-style: italic;"></div>
+                                <div id="voiceUseCase" style="margin-top: 5px;"></div>
+                                <audio id="voicePreview" controls style="width: 100%; margin-top: 8px; display: none;">
+                                    Your browser does not support the audio element.
+                                </audio>
+                            </div>
+                            <label>Model:</label>
+                            <select id="elevenlabsModel">
+                                <option value="eleven_turbo_v2_5">Eleven Turbo v2.5</option>
+                                <option value="eleven_turbo_v2">Eleven Turbo v2</option>
+                                <option value="eleven_multilingual_v2">Eleven Multilingual v2</option>
+                                <option value="eleven_monolingual_v1">Eleven Monolingual v1</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="submitButton">Create Agent</button>
+                    <button type="button" id="cancelEdit" style="display: none;">Cancel Edit</button>
+                </form>
+                <div id="agentStatus" class="status"></div>
+            </div>
+
+            <!-- Agent List -->
+            <div class="section">
+                <h2>Existing Agents</h2>
+                <div class="agent-list" id="agentList"></div>
+            </div>
+        </div>
+
+        <!-- Make Call Section -->
+        <div class="section">
+            <h2>Initiate Call</h2>
+            <form id="makeCallForm">
+                <div class="form-group">
+                    <label>Select Agent:</label>
+                    <select id="callAgentId" required></select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Phone Number:</label>
+                    <input type="tel" id="phoneNumber" placeholder="+447380907786" required>
+                </div>
+
+                <button type="submit">Make Call</button>
+            </form>
+            <div id="callStatus" class="status"></div>
+        </div>
+    </div>
+
+    <script>
+        // Store voices globally
+        let elevenlabsVoices = [];
+
+        // Load ElevenLabs voices (hardcoded from API response)
+        function fetchElevenLabsVoices() {
+            // Hardcoded voice data from ElevenLabs API response
+            const data = {
+                    "voices": [
+                        {
+                            "voice_id": "21m00Tcm4TlvDq8ikWAM",
+                            "name": "Rachel",
+                            "category": "premade",
+                            "labels": {
+                                "accent": "american",
+                                "description": "calm",
+                                "age": "young",
+                                "gender": "female",
+                                "use_case": "narration"
+                            },
+                            "description": null,
+                            "preview_url": "https://storage.googleapis.com/eleven-public-prod/premade/voices/21m00Tcm4TlvDq8ikWAM/b4928a68-c03b-411f-8533-3d5c299fd451.mp3"
+                        },
+                        {
+                            "voice_id": "29vD33N1CtxCmqQRPOHJ",
+                            "name": "Drew",
+                            "category": "premade",
+                            "labels": {
+                                "accent": "american",
+                                "description": "well-rounded",
+                                "age": "middle_aged",
+                                "gender": "male",
+                                "use_case": "news"
+                            },
+                            "description": null,
+                            "preview_url": "https://storage.googleapis.com/eleven-public-prod/premade/voices/29vD33N1CtxCmqQRPOHJ/b99fc51d-12d3-4312-b480-a8a45a7d51ef.mp3"
+                        },
+                        {
+                            "voice_id": "2EiwWnXFnvU5JabPnv8n",
+                            "name": "Clyde",
+                            "category": "premade",
+                            "labels": {
+                                "accent": "american",
+                                "description": "war veteran",
+                                "age": "middle_aged",
+                                "gender": "male",
+                                "use_case": "characters"
+                            },
+                            "description": null,
+                            "preview_url": "https://storage.googleapis.com/eleven-public-prod/premade/voices/2EiwWnXFnvU5JabPnv8n/65d80f52-703f-4cae-a91d-75d4e200ed02.mp3"
+                        },
+                        {
+                            "voice_id": "5Q0t7uMcjvnagumLfvZi",
+                            "name": "Paul",
+                            "category": "premade",
+                            "labels": {
+                                "accent": "american",
+                                "description": "authoritative",
+                                "age": "middle_aged",
+                                "gender": "male",
+                                "use_case": "news"
+                            },
+                            "description": null,
+                            "preview_url": "https://storage.googleapis.com/eleven-public-prod/premade/voices/5Q0t7uMcjvnagumLfvZi/a4aaa30e-54c4-44a4-8e46-b9b00505d963.mp3"
+                        },
+                        {
+                            "voice_id": "9BWtsMINqrJLrRacOk9x",
+                            "name": "Aria",
+                            "category": "premade",
+                            "labels": {
+                                "accent": "american",
+                                "descriptive": "husky",
+                                "age": "middle_aged",
+                                "gender": "female",
+                                "language": "en",
+                                "use_case": "informative_educational"
+                            },
+                            "description": "A middle-aged female with an African-American accent. Calm with a hint of rasp.",
+                            "preview_url": "https://storage.googleapis.com/eleven-public-prod/premade/voices/9BWtsMINqrJLrRacOk9x/405766b8-1f4e-4d3c-aba1-6f25333823ec.mp3"
+                        },
+                        {
+                            "voice_id": "AZnzlk1XvdvUeBnXmlld",
+                            "name": "Domi",
+                            "category": "premade",
+                            "labels": {
+                                "accent": "american",
+                                "description": "strong",
+                                "age": "young",
+                                "gender": "female",
+                                "use_case": "narration"
+                            },
+                            "description": null,
+                            "preview_url": "https://storage.googleapis.com/eleven-public-prod/premade/voices/AZnzlk1XvdvUeBnXmlld/b3c36b01-f80d-4b16-a698-f83682dee84c.mp3"
+                        },
+                        {
+                            "voice_id": "CYw3kZ02Hs0563khs1Fj",
+                            "name": "Dave",
+                            "category": "premade",
+                            "labels": {
+                                "accent": "british",
+                                "description": "conversational",
+                                "age": "young",
+                                "gender": "male",
+                                "use_case": "characters"
+                            },
+                            "description": null,
+                            "preview_url": "https://storage.googleapis.com/eleven-public-prod/premade/voices/CYw3kZ02Hs0563khs1Fj/872cb056-45d3-419e-b5c6-de2b387a93a0.mp3"
+                        },
+                        {
+                            "voice_id": "CwhRBWXzGAHq8TQ4Fs17",
+                            "name": "Roger",
+                            "category": "premade",
+                            "labels": {
+                                "accent": "",
+                                "description": "confident",
+                                "age": "middle_aged",
+                                "gender": "male",
+                                "language": "en",
+                                "use_case": "social_media"
+                            },
+                            "description": "",
+                            "preview_url": "https://storage.googleapis.com/eleven-public-prod/premade/voices/CwhRBWXzGAHq8TQ4Fs17/58ee3ff5-f6f2-4628-93b8-e38eb31806b0.mp3"
+                        },
+                        {
+                            "voice_id": "D38z5RcWu1voky8WS1ja",
+                            "name": "Fin",
+                            "category": "premade",
+                            "labels": {
+                                "accent": "irish",
+                                "description": "sailor",
+                                "age": "old",
+                                "gender": "male",
+                                "use_case": "characters"
+                            },
+                            "description": null,
+                            "preview_url": "https://storage.googleapis.com/eleven-public-prod/premade/voices/D38z5RcWu1voky8WS1ja/a470ba64-1e72-46d9-ba9d-030c4155e2d2.mp3"
+                        },
+                        {
+                            "voice_id": "EXAVITQu4vr4xnSDxMaL",
+                            "name": "Sarah",
+                            "category": "premade",
+                            "labels": {
+                                "accent": "american",
+                                "descriptive": "professional",
+                                "age": "young",
+                                "gender": "female",
+                                "language": "en",
+                                "use_case": "entertainment_tv"
+                            },
+                            "description": "Young adult woman with a confident and warm, mature quality and a reassuring, professional tone.",
+                            "preview_url": "https://storage.googleapis.com/eleven-public-prod/premade/voices/EXAVITQu4vr4xnSDxMaL/01a3e33c-6e99-4ee7-8543-ff2216a32186.mp3"
+                        }
+                    ]
+                };
+                
+                elevenlabsVoices = data.voices || [];
+                
+                // Populate the voice dropdown
+                const voiceSelect = document.getElementById('elevenlabsVoice');
+                voiceSelect.innerHTML = elevenlabsVoices.map(voice => {
+                    const labels = voice.labels || {};
+                    const gender = labels.gender || 'unknown';
+                    const accent = labels.accent || 'unknown';
+                    const description = labels.description || labels.descriptive || '';
+                    const useCase = labels.use_case || '';
+                    const age = labels.age || 'unknown';
+                    const category = voice.category || 'unknown';
+                    
+                    return `
+                        <option value="${voice.name}" 
+                                data-id="${voice.voice_id}" 
+                                data-gender="${gender}" 
+                                data-accent="${accent}"
+                                data-description="${description}"
+                                data-use-case="${useCase}"
+                                data-age="${age}"
+                                data-category="${category}"
+                                data-preview-url="${voice.preview_url || ''}"
+                                data-full-description="${voice.description || ''}">
+                            ${voice.name} (${gender}, ${accent})
+                        </option>
+                    `;
+                }).join('');
+                
+                // Show info for first voice
+                updateVoiceInfo();
+        }
+
+        // Update voice info display
+        function updateVoiceInfo() {
+            const voiceSelect = document.getElementById('elevenlabsVoice');
+            const selectedOption = voiceSelect.selectedOptions[0];
+            const voiceInfo = document.getElementById('voiceInfo');
+            
+            if (selectedOption && selectedOption.dataset.id) {
+                const gender = selectedOption.dataset.gender || 'Unknown';
+                const accent = selectedOption.dataset.accent || 'Unknown';
+                const age = selectedOption.dataset.age || 'Unknown';
+                const category = selectedOption.dataset.category || 'Unknown';
+                const description = selectedOption.dataset.description || '';
+                const useCase = selectedOption.dataset.useCase || '';
+                const fullDescription = selectedOption.dataset.fullDescription || '';
+                const previewUrl = selectedOption.dataset.previewUrl || '';
+                
+                // Build the voice info HTML
+                let infoHTML = `
+                    <strong>Voice Details:</strong><br>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 5px;">
+                        <span><strong>Gender:</strong> ${gender}</span>
+                        <span><strong>Accent:</strong> ${accent}</span>
+                        <span><strong>Age:</strong> ${age}</span>
+                        <span><strong>Category:</strong> ${category}</span>
+                    </div>
+                `;
+                
+                if (description) {
+                    infoHTML += `<div style="margin-top: 8px;"><strong>Description:</strong> ${description}</div>`;
+                }
+                
+                if (fullDescription) {
+                    infoHTML += `<div style="margin-top: 5px; font-style: italic;">${fullDescription}</div>`;
+                }
+                
+                if (useCase) {
+                    infoHTML += `<div style="margin-top: 5px;"><strong>Use Case:</strong> ${useCase}</div>`;
+                }
+                
+                voiceInfo.innerHTML = infoHTML;
+                
+                // Handle audio preview
+                const audioPreview = document.getElementById('voicePreview');
+                if (previewUrl) {
+                    audioPreview.src = previewUrl;
+                    audioPreview.style.display = 'block';
+                } else {
+                    audioPreview.style.display = 'none';
+                }
+                
+                voiceInfo.style.display = 'block';
+            } else {
+                voiceInfo.style.display = 'none';
+            }
+        }
+
+        // Add event listener to voice select
+        document.getElementById('elevenlabsVoice').addEventListener('change', updateVoiceInfo);
+
+        // Toggle voice provider options
+        function toggleVoiceOptions() {
+            const provider = document.getElementById('voiceProvider').value;
+            const deepgramOptions = document.getElementById('deepgramOptions');
+            const elevenlabsOptions = document.getElementById('elevenlabsOptions');
+            
+            if (provider === 'deepgram') {
+                deepgramOptions.classList.remove('hidden');
+                elevenlabsOptions.classList.add('hidden');
+            } else {
+                deepgramOptions.classList.add('hidden');
+                elevenlabsOptions.classList.remove('hidden');
+            }
+        }
+
+        // Fetch and display agents
+        async function fetchAgents() {
+            try {
+                const response = await fetch('http://localhost:5001/all');
+                const data = await response.json();
+                const agentArray = data.agents;
+                
+                // Update agent list
+                const agentList = document.getElementById('agentList');
+                agentList.innerHTML = agentArray.map(agent => `
+                    <div class="agent-item" data-id="${agent.agent_id}">
+                        <div style="display: flex; justify-content: space-between;">
+                            <div>
+                                <strong>${agent.data.agent_name}</strong><br>
+                                <small>ID: ${agent.agent_id}</small>
+                            </div>
+                            <button class="delete-btn" onclick="deleteAgent('${agent.agent_id}')">🗑️</button>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Update call dropdown
+                const callSelect = document.getElementById('callAgentId');
+                callSelect.innerHTML = agentArray.map(agent => `
+                    <option value="${agent.agent_id}">${agent.data.agent_name} (${agent.data.tasks[0].tools_config.llm_agent.llm_config.model})</option>
+                `).join('');
+
+                // Add click handlers for editing
+                document.querySelectorAll('.agent-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('delete-btn')) {
+                            loadAgentForEdit(item.dataset.id);
+                        }
+                    });
+                });
+
+            } catch (error) {
+                console.error('Error fetching agents:', error);
+            }
+        }
+
+        // Load agent for editing - HANDLES BOTH API FORMATS
+        async function loadAgentForEdit(agentId) {
+            try {
+                // Show loading state
+                showStatus('agentStatus', 'Loading agent data...', 'success');
+                
+                const response = await fetch(`http://localhost:5001/agent/${agentId}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                let agentData = await response.json();
+                const isWrapped = agentData.data !== undefined;
+                const agent = isWrapped ? agentData.data : agentData;
+                if (!agent || !agent.agent_name) throw new Error('Received invalid agent data structure');
+
+                // Fetch system prompt using the API endpoint
+                let systemPrompt = '';
+                try {
+                    showStatus('agentStatus', 'Loading prompts...', 'success');
+                    const promptResp = await fetch(`http://localhost:5001/agent/${agentId}/prompts`);
+                    if (promptResp.ok) {
+                        const promptData = await promptResp.json();
+                        systemPrompt = promptData.task_1?.system_prompt || '';
+                    } else {
+                        console.warn(`Could not fetch prompts for agent ${agentId}: ${promptResp.status}`);
+                    }
+                } catch (error) {
+                    console.warn('Could not fetch prompts:', error);
+                    showStatus('agentStatus', 'Warning: Could not load system prompt', 'error');
+                }
+
+                document.getElementById('agentIdInput').value = agentId;
+                document.getElementById('agentName').value = agent.agent_name;
+                document.getElementById('systemPrompt').value = systemPrompt;
+                document.getElementById('welcomeMessage').value = agent.agent_welcome_message || '';
+
+                // Set LLM model
+                const model = agent.tasks?.[0]?.tools_config?.llm_agent?.llm_config?.model || 'gpt-4-turbo';
+                document.getElementById('llmModel').value = model;
+
+                // Set voice provider and options
+                const synthConfig = agent.tasks[0].tools_config.synthesizer;
+                const provider = synthConfig.provider;
+                document.getElementById('voiceProvider').value = provider;
+                toggleVoiceOptions();
+
+                if (provider === 'deepgram') {
+                    const voice = synthConfig.provider_config.voice || 'thalia';
+                    document.getElementById('deepgramVoice').value = voice;
+                } else if (provider === 'elevenlabs') {
+                    const voice = synthConfig.provider_config.voice || 'George';
+                    const model = synthConfig.provider_config.model || 'eleven_turbo_v2_5';
+                    document.getElementById('elevenlabsVoice').value = voice;
+                    document.getElementById('elevenlabsModel').value = model;
+                }
+
+                // Switch form to edit mode
+                document.getElementById('submitButton').textContent = 'Update Agent';
+                document.getElementById('cancelEdit').style.display = 'inline-block';
+                document.getElementById('editIndicator').style.display = 'block';
+                document.getElementById('editingAgentName').textContent = agent.agent_name;
+                document.getElementById('editingAgentId').textContent = agentId;
+                document.getElementById('agentFormSection').classList.add('edit-mode');
+                document.querySelectorAll('.agent-item').forEach(item => item.classList.toggle('editing', item.dataset.id === agentId));
+
+                showStatus('agentStatus', `Loaded agent: ${agent.agent_name}`, 'success');
+
+            } catch (error) {
+                console.error('Error loading agent:', error);
+                showStatus('agentStatus', `Error loading agent: ${error.message}`, 'error');
+            }
+        }
+
+        // Delete agent
+        async function deleteAgent(agentId) {
+            if (confirm('Are you sure you want to delete this agent?')) {
+                try {
+                    const res = await fetch(`http://localhost:5001/agent/${agentId}`, { method: 'DELETE' });
+                    if (!res.ok) throw new Error('Failed to delete agent');
+                    showStatus('agentStatus', 'Agent deleted successfully', 'success');
+                    fetchAgents();
+                    if (document.getElementById('agentIdInput').value === agentId) resetForm();
+                } catch (error) {
+                    showStatus('agentStatus', error.message, 'error');
+                }
+            }
+        }
+
+        // Agent Form Handler
+        document.getElementById('agentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const isEdit = !!document.getElementById('agentIdInput').value;
+            const method = isEdit ? 'PUT' : 'POST';
+            const url = isEdit ?
+                `http://localhost:5001/agent/${document.getElementById('agentIdInput').value}` :
+                'http://localhost:5001/agent';
+
+            // Get voice provider and configuration
+            const voiceProvider = document.getElementById('voiceProvider').value;
+            let synthesizerConfig;
+
+            if (voiceProvider === 'deepgram') {
+                const selectedVoice = document.getElementById('deepgramVoice').value;
+                synthesizerConfig = {
+                    provider: "deepgram",
+                    audio_format: "linear16",
+                    stream: true,
+                    provider_config: { 
+                        voice: selectedVoice, 
+                        model: `aura-2-${selectedVoice}-en`,
+                        voice_id: selectedVoice
+                    },
+                    buffer_size: 100
+                };
+            } else if (voiceProvider === 'elevenlabs') {
+                const selectedVoiceOption = document.getElementById('elevenlabsVoice').selectedOptions[0];
+                const voiceName = selectedVoiceOption.value;
+                const voiceId = selectedVoiceOption.dataset.id;
+                const model = document.getElementById('elevenlabsModel').value;
+                
+                synthesizerConfig = {
+                    audio_format: "wav",
+                    provider: "elevenlabs",
+                    stream: true,
+                    provider_config: {
+                        voice: voiceName,
+                        model: model,
+                        voice_id: voiceId
+                    },
+                    buffer_size: 100.0
+                };
+            }
+
+            const llmModel = document.getElementById('llmModel').value;
+            const audioFormat = voiceProvider === 'elevenlabs' ? 'wav' : 'linear16';
+
+            const payload = {
+                agent_config: {
+                    agent_name: document.getElementById('agentName').value,
+                    agent_type: "other",
+                    agent_welcome_message: document.getElementById('welcomeMessage').value,
+                    tasks: [{
+                        task_type: "conversation",
+                        toolchain: { execution: "parallel", pipelines: [["transcriber","llm","synthesizer"]] },
+                        tools_config: {
+                            input: { format: audioFormat, provider: "twilio" },
+                            llm_agent: {
+                                agent_type: "simple_llm_agent",
+                                agent_flow_type: "streaming",
+                                routes: null,
+                                llm_config: { 
+                                    provider: (llmModel === 'deepseek-chat' ? 'deepseek' : 'openai'), 
+                                    model: llmModel, 
+                                    request_json: true 
+                                }
+                            },
+                            output: { format: audioFormat, provider: "twilio" },
+                            synthesizer: synthesizerConfig,
+                            transcriber: { 
+                                provider: "deepgram", 
+                                encoding: "linear16", 
+                                language: "en", 
+                                stream: true 
+                            }
+                        },
+                        task_config: { hangup_after_silence: 7 }
+                    }]
+                },
+                agent_prompts: { task_1: { system_prompt: document.getElementById('systemPrompt').value } }
+            };
+
+            try {
+                const response = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+                const data = await response.json();
+                if (response.ok) {
+                    showStatus('agentStatus', `Agent ${isEdit?'updated':'created'} successfully! ID: ${data.agent_id}`, 'success');
+                    resetForm(); fetchAgents();
+                } else {
+                    throw new Error(data.detail || 'Request failed');
+                }
+            } catch (error) {
+                showStatus('agentStatus', `Error ${isEdit?'updating':'creating'} agent: ${error.message}`, 'error');
+            }
+        });
+
+        // Cancel Edit
+        document.getElementById('cancelEdit').addEventListener('click', resetForm);
+
+        function resetForm() {
+            document.getElementById('agentForm').reset();
+            document.getElementById('agentIdInput').value = '';
+            document.getElementById('submitButton').textContent = 'Create Agent';
+            document.getElementById('cancelEdit').style.display = 'none';
+            document.getElementById('editIndicator').style.display = 'none';
+            document.getElementById('agentFormSection').classList.remove('edit-mode');
+            document.querySelectorAll('.agent-item').forEach(item => item.classList.remove('editing'));
+            // Reset to default provider view
+            document.getElementById('voiceProvider').value = 'deepgram';
+            toggleVoiceOptions();
+            // Clear status when resetting form
+            document.getElementById('agentStatus').textContent = '';
+            document.getElementById('agentStatus').className = 'status';
+        }
+
+        // Make Call Handler
+        document.getElementById('makeCallForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = { agent_id: document.getElementById('callAgentId').value, recipient_phone_number: document.getElementById('phoneNumber').value };
+            try {
+                const response = await fetch('http://localhost:8001/call',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+                if (response.ok) showStatus('callStatus','Call initiated successfully!','success'); else { const error = await response.json(); throw new Error(error.detail||'Failed to initiate call'); }
+            } catch (error) { showStatus('callStatus', error.message, 'error'); }
+        });
+
+        function showStatus(elementId, message, type) {
+            const statusDiv = document.getElementById(elementId);
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+
+        // Initial load
+        fetchAgents();
+        fetchElevenLabsVoices();
+        // Initialize voice provider view
+        toggleVoiceOptions();
+    </script>
+</body>
+</html>

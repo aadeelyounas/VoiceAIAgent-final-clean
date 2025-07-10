@@ -1,0 +1,16 @@
+region: eu
+version: '2'
+authtoken: 2zYBQrWaxlCGcFcUHmGPwZxhIab_32oJFvgxMezh57qRdy37F
+
+tunnels:
+  twilio-app:
+    proto: http
+    addr: twilio-app:8001
+
+  voiceaiagent-app:
+    proto: http
+    addr: voiceaiagent-app:5001
+
+  inbound-server:
+    proto: http
+    addr: inbound-server:5000
