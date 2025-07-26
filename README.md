@@ -5,6 +5,7 @@
 ### Prerequisites
 - Docker and Docker Compose
 - Ngrok account
+- OpenAI API, Deepgram API, Twilio API
 
 ### Quick Setup
 
